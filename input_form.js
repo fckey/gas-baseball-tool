@@ -126,6 +126,20 @@ function calcHittingResult(values){
   return result;
 }
 
+function overwriteRowIfPlayterExists(sheet, new_row){
+  var player_name = new_row[0];
+
+  var values = getDataFromSheet(sheet);
+  for (var i = 0; i < values.length; i++) {
+    var row = values[i];
+    if(row[0] === player_name){
+      sheet.deleteRow(i+1);//row starts from 1 in the sheet
+      break;
+    }
+  }
+  sheet.appendRow(new_row);
+}
+
 function onFormSubmit(e) {
   Logger.log(e);
   var game = e.namedValues["Game"].toString();
@@ -135,7 +149,8 @@ function onFormSubmit(e) {
     game_sheet = getGameSheet(game);
     game_sheet.appendRow(generateHeader());
   }
-  game_sheet.appendRow(calcHittingResult(e.namedValues));
+
+  overwriteRowIfPlayterExists(game_sheet, calcHittingResult(e.namedValues));
 }
 
 function createFormSubmitTriggers(){

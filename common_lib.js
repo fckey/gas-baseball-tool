@@ -31,11 +31,19 @@ function convertToSingleArray(data){
   return list;
 }
 
+function getDataFromSheet(sheet){
+  return sheet.getSheetValues(1, 1, sheet.getLastRow(), sheet.getLastColumn());
+}
+
+function getFirstColumnDataFromSheet(sheet){
+  return sheet.getSheetValues(1, 1, sheet.getLastRow(), 1);
+}
+
 function getPlayers(){
   if(getPlayers.players) { return getPlayers.players }
 
   var player_sheet = getResourceSpreadSheet().getSheetByName("Players");
-  var data = player_sheet.getSheetValues(1, 1, player_sheet.getLastRow(), 1);
+  var data = getFirstColumnDataFromSheet(player_sheet);
   getPlayers.players = convertToSingleArray(data);
   return getPlayers.players;
 }
@@ -44,6 +52,6 @@ function getGameName(){
   if(getGameName.games) { return getGameName.games; }
 
   var games_sheet = getGamesSheet();
-  getGameName.games = convertToSingleArray(getGamesSheet().getSheetValues(1, 1, games_sheet.getLastRow(), 1));
+  getGameName.games = convertToSingleArray(getFirstColumnDataFromSheet(getGamesSheet()));
   return getGameName.games;
 }

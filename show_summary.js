@@ -52,7 +52,7 @@ function createTable(values, style){
 }
 
 function processSheet(sheet){
-  var values = sheet.getSheetValues(1, 1, sheet.getLastRow(), sheet.getLastColumn());
+  var values = getDataFromSheet(sheet);
   values[0] =updateHeader(values[0]);
   addAdditionalParam(values);
   var tableHtml = createTable(values, "table table-striped") + "<br>";
@@ -79,14 +79,14 @@ function extractValidResultSheets(){
 function createSummaryHtmlTable(){
   var summary_sheet = getGameSheet("Summary");
   var result = "<h5> Ground Total (Update on Monday) </h5>";
-  result += createTable(summary_sheet.getSheetValues(1, 1, summary_sheet.getLastRow(), summary_sheet.getLastColumn()), "table table-bordered table-striped");
+  result += createTable(getDataFromSheet(summary_sheet), "table table-bordered table-striped");
  return result;
 }
 
 function createRankingHtmlTable(){
   var ranking_sheet = getGameSheet("Ranking");
   var result = "<h5> Hitting Ranking </h5>";
-  result += createTable(ranking_sheet.getSheetValues(1, 1, ranking_sheet.getLastRow(), ranking_sheet.getLastColumn()), "table table-bordered table-sm");
+  result += createTable(getDataFromSheet(ranking_sheet), "table table-bordered table-sm");
  return result;
 }
 
@@ -129,7 +129,7 @@ function createSummary(){
   var count_games = {};
   for(var sheetName in sheets){
     var sheet = sheets[sheetName];
-    var values = sheet.getSheetValues(1, 1, sheet.getLastRow(), sheet.getLastColumn());
+    var values = getDataFromSheet(sheet);
     for(var i=1; i<values.length; i ++){
       var row = values[i];
       var name = row[0];
