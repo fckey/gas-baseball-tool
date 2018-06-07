@@ -1,68 +1,18 @@
-function getResourceSpreadSheet(){
-  if(getResourceSpreadSheet.sheet) { return getResourceSpreadSheet.sheet; }
+function createPitchingForm(){
 
-  getResourceSpreadSheet.sheet = SpreadsheetApp.openById(RESOURCE_SHEET_ID);
-  return getResourceSpreadSheet.sheet;
-}
-
-function getResultsSpreadSheet(){
-  if(getResultsSpreadSheet.sheet) { return getResultsSpreadSheet.sheet; }
-
-  getResultsSpreadSheet.sheet = SpreadsheetApp.openById(test_sheet_id);
-  return getResultsSpreadSheet.sheet;
-}
-
-function getGamesSheet(){
-  if(getGamesSheet.sheet) { return getGamesSheet.sheet; }
-  
-  getGamesSheet.sheet = getResourceSpreadSheet().getSheetByName("Games");
-  return getGamesSheet.sheet;
-}
-
-function getGameSheet(game){
-  return getResultsSpreadSheet().getSheetByName(game);
-}
-
-function convertToSingleArray(data){
-  var list = []
-  for(var i=0; i<data.length; i++){ 
-    list.push(data[i][0]);
-  }
-  return list;
-}
-
-function getPlayers(){
-  if(getPlayers.players) { return getPlayers.players }
-  
-  var player_sheet = getResourceSpreadSheet().getSheetByName("Players");
-  var data = player_sheet.getSheetValues(1, 1, player_sheet.getLastRow(), 1);
-  getPlayers.players = convertToSingleArray(data);
-  return getPlayers.players;
-}
-
-function getGameName(){
-  if(getGameName.games) { return getGameName.games; }
-  
-  var games_sheet = getGamesSheet();
-  getGameName.games = convertToSingleArray(getGamesSheet().getSheetValues(1, 1, games_sheet.getLastRow(), 1));
-  return getGameName.games;
-}
-
-function createIndividualForm(){
-
-  var title = "Baseball Results";
+  var title = "Pitching Results";
   var form = FormApp.create(title).setTitle(title);
-  
+
   var choices = ["1B", "2B", "3B", "HR", "O", "SO", "BB", "E", "SH/SF"];
   form.addMultipleChoiceItem()
       .setTitle("Hitting Reusult")
       .setChoiceValues(choices)
       .setRequred(true);
-  
+
   form.addTextItem()
       .setTitle("Steal")
       .setRequired(false);
-  
+
 }
 
 function createSumaryForm(){
@@ -70,18 +20,18 @@ function createSumaryForm(){
   var form = FormApp.create(title)
                     .setTitle(title)
                     .setDescription("Add your butting result");
-  
+
   var textValidation = FormApp.createTextValidation()
    .setHelpText("Input was not a number.")
    .requireNumber()
    .build();
-  
+
   form.addListItem()
       .setTitle("Game")
       .setChoiceValues(getGameName())
       .setRequired(true);
-  
-  
+
+
   form.addListItem()
       .setTitle("Name")
       .setChoiceValues(getPlayers())
@@ -92,7 +42,7 @@ function createSumaryForm(){
   .setRows(["H","2H","3H","HR", "SO", "Out", "BB"])
   .setColumns([0,1,2,3,4,5])
   .setHelpText("H is single hit but not total. Don't include SO in Out. SO:三振");
-  
+
   form.addTextItem()
       .setTitle("SH")
       .setHelpText("犠打")
@@ -104,35 +54,35 @@ function createSumaryForm(){
       .setHelpText("犠飛")
       .setValidation(textValidation)
       .setRequired(false);
-  
+
   form.addTextItem()
       .setTitle("E")
       .setHelpText("Error on your hitting")
       .setValidation(textValidation)
       .setRequired(false);
-  
+
    form.addTextItem()
       .setTitle("RBI")
       .setHelpText("打点")
       .setValidation(textValidation);
-  
+
   form.addTextItem()
       .setTitle("R")
       .setHelpText("得点")
       .setValidation(textValidation);
-  
+
   form.addTextItem()
       .setTitle("SB")
       .setHelpText("盗塁")
       .setValidation(textValidation);
-  
+
   form.addTextItem()
       .setTitle("Interference")
       .setHelpText("打撃妨害")
       .setValidation(textValidation);
-  
-  form.setDestination(FormApp.DestinationType.SPREADSHEET, test_sheet_id);
-  
+
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, RESULT_SHEET_ID);
+
 }
 
 function calcHittingResult(values){
@@ -151,7 +101,7 @@ function calcHittingResult(values){
   var run = extractValueAsInt(values["R"].toString());
   var sb = extractValueAsInt(values["SB"].toString());
   var inter = extractValueAsInt(values["Interference"].toString());
-  
+
   var hits = single + double + triple + hr;
   var ab = hits + out + so + error;
   var pa = ab + bb + sh + sf + inter;
@@ -172,7 +122,7 @@ function calcHittingResult(values){
   result.push(rbi);
   result.push(run);
   result.push(sb);
- 
+
   return result;
 }
 
@@ -190,7 +140,7 @@ function onFormSubmit(e) {
 
 function createFormSubmitTriggers(){
   ScriptApp.newTrigger("onFormSubmit")
-  .forSpreadsheet(test_sheet_id)
+  .forSpreadsheet(RESULT_SHEET_ID)
   .onFormSubmit()
   .create();
 }

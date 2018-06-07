@@ -1,5 +1,3 @@
-var test_sheet_id = "16bvKBZicFL_FMdE7UaVkI8mo-PRF_egaS7_eKIwSbJo";
-
 function doGet() {
    var t = HtmlService.createTemplateFromFile("index.html");
    return t.evaluate();
@@ -11,10 +9,10 @@ function updateHeader(header){
   header.push("OBS");
   header.push("OPS");
   return header;
-}  
+}
 
 function addAdditionalParam(values){
-  for(var i=1; i<values.length; i ++){ 
+  for(var i=1; i<values.length; i ++){
     var row = values[i];
     var slg = calcSlg(row);
     var obs = calcObs(row);
@@ -26,12 +24,12 @@ function addAdditionalParam(values){
 }
 
 function createTable(values, style){
-  var result = "" 
-  var header = "<table class=\""+style+"\"><tbody>"; 
+  var result = ""
+  var header = "<table class=\""+style+"\"><tbody>";
   var trailer = "</tbody></table>";
   result += header;
-  
-  for(var i=0; i<values.length; i ++){ 
+
+  for(var i=0; i<values.length; i ++){
     var row = values[i];
     if(i === 0){
       result+="<thread><tr>";
@@ -56,10 +54,10 @@ function createTable(values, style){
 function processSheet(sheet){
   var values = sheet.getSheetValues(1, 1, sheet.getLastRow(), sheet.getLastColumn());
   values[0] =updateHeader(values[0]);
-  addAdditionalParam(values); 
+  addAdditionalParam(values);
   var tableHtml = createTable(values, "table table-striped") + "<br>";
   return tableHtml;
-  
+
 }
 
 function extractValidResultSheets(){
@@ -71,8 +69,8 @@ function extractValidResultSheets(){
     var sheet = sheets[i];
     if(!reg.test(sheet.getName())){
       continue;
-    } 
-    
+    }
+
     result[sheet.getName()] = sheet;
   }
   return result;
@@ -94,7 +92,7 @@ function createRankingHtmlTable(){
 
 function generateResultsTable(){
   var result = "<center>";
-  var sheets = extractValidResultSheets();  
+  var sheets = extractValidResultSheets();
 //  createSummary();
   result += createSummaryHtmlTable();
   result += createRankingHtmlTable();
@@ -105,7 +103,7 @@ function generateResultsTable(){
     var sheet = sheets[sheetName];
     result += "<h5> Game of " + sheetName + "</h5>";
     result += processSheet(sheet)
-  } 
+  }
   result+="</center>"
   return result;
 }
@@ -121,7 +119,7 @@ function convertMapToMultiArray(map){
 function getHeaderForSummary(){
  var header = updateHeader(generateHeader());
  header.splice(1,0,"Games");//Add header for num of games
- return header;  
+ return header;
 }
 
 function createSummary(){
@@ -132,7 +130,7 @@ function createSummary(){
   for(var sheetName in sheets){
     var sheet = sheets[sheetName];
     var values = sheet.getSheetValues(1, 1, sheet.getLastRow(), sheet.getLastColumn());
-    for(var i=1; i<values.length; i ++){ 
+    for(var i=1; i<values.length; i ++){
       var row = values[i];
       var name = row[0];
       if(!individuals[name]){
@@ -147,12 +145,12 @@ function createSummary(){
         }
         return e+row[index];
       });
-    }  
+    }
   }
   var total = convertMapToMultiArray(individuals);
-  
+
 //  Logger.log(total);
-  
+
   summary_sheet.clear();
 
   total.unshift(updateHeader(generateHeader()));
@@ -166,5 +164,5 @@ function createSummary(){
     }
       summary_sheet.appendRow(row);
   }
-  
+
 }
