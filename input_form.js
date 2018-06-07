@@ -3,15 +3,71 @@ function createPitchingForm(){
   var title = "Pitching Results";
   var form = FormApp.create(title).setTitle(title);
 
-  var choices = ["1B", "2B", "3B", "HR", "O", "SO", "BB", "E", "SH/SF"];
+  var textValidation = FormApp.createTextValidation()
+   .setHelpText("Input was not a number.")
+   .requireNumber()
+   .build();
+
+  form.addListItem()
+      .setTitle("Game")
+      .setChoiceValues(getGameName())
+      .setRequired(true);
+
+  form.addListItem()
+      .setTitle("Name")
+      .setChoiceValues(getPlayers())
+      .setRequired(true);
+
   form.addMultipleChoiceItem()
-      .setTitle("Hitting Reusult")
-      .setChoiceValues(choices)
-      .setRequred(true);
+  .setTitle("Result")
+  .setChoiceValues(["W", "L", "H", "S", "NA"])
+  .setRequired(true);
+
+  form.addScaleItem()
+  .setTitle("Inning")
+  .setBounds(1,7)
+  .setRequired(true);
 
   form.addTextItem()
-      .setTitle("Steal")
-      .setRequired(false);
+      .setTitle("Outs")
+      .setHelpText("n/3")
+      .setValidation(textValidation);
+
+  form.addTextItem()
+      .setTitle("R")
+      .setHelpText("失点")
+      .setValidation(textValidation)
+      .setRequired(true);
+
+  form.addTextItem()
+      .setTitle("ER")
+      .setHelpText("自責点")
+      .setValidation(textValidation)
+      .setRequired(true);
+
+  form.addTextItem()
+      .setTitle("SO")
+      .setValidation(textValidation);
+
+  form.addTextItem()
+      .setTitle("BB")
+      .setValidation(textValidation);
+
+  form.addTextItem()
+      .setTitle("H")
+      .setValidation(textValidation);
+
+  form.addTextItem()
+      .setTitle("HR")
+      .setValidation(textValidation);
+
+  form.addTextItem()
+      .setTitle("NP")
+      .setHelpText("球数")
+      .setValidation(textValidation);
+
+
+    form.setDestination(FormApp.DestinationType.SPREADSHEET, RESULT_SHEET_ID);
 
 }
 
@@ -126,13 +182,48 @@ function calcHittingResult(values){
   return result;
 }
 
-function overwriteRowIfPlayterExists(sheet, new_row){
-  var player_name = new_row[0];
+function calcPitchingResult(values){
+  result = [];
+  var date = extractValueAsInt(values["Game"].toString());
+  var inning = extractValueAsInt(values["Inning"].toString());
+  var outs = extractValueAsInt(values["Outs"].toString());
+  var run = extractValueAsInt(values["R"].toString());
+  var er = extractValueAsInt(values["ER"].toString());
+  var so = extractValueAsInt(values["SO"].toString());
+  var bb = extractValueAsInt(values["BB"].toString());
+  var hits = extractValueAsInt(values["H"].toString());
+  var hr = extractValueAsInt(values["HR"].toString());
+  var np = extractValueAsInt(values["NP"].toString());
+  var era = calcEra(inning, outs, er);
+  result.push(date);
+  result.push(values["Name"].toString());
+  result.push(values["Result"].toString());
+  result.push(inning);
+  result.push(outs)
+  result.push(run);
+  result.push(er);
+  result.push(so);
+  result.push(bb);
+  result.push(hits);
+  result.push(hr);
+  result.push(np);
+  result.push(era);
+  return result;
+}
 
+function isNameEqual(row, new_row){
+  return row[0] === new_row[0];
+}
+
+function isNameAndDateEqual(row, new_row){
+  return (row[0] === new_row[0]) && (row[1] === new_row[1]);
+}
+
+function overwriteRowIfPlayterExists(sheet, new_row, validator){
   var values = getDataFromSheet(sheet);
   for (var i = 0; i < values.length; i++) {
     var row = values[i];
-    if(row[0] === player_name){
+    if(validator(row, new_row)){
       sheet.deleteRow(i+1);//row starts from 1 in the sheet
       break;
     }
@@ -140,8 +231,13 @@ function overwriteRowIfPlayterExists(sheet, new_row){
   sheet.appendRow(new_row);
 }
 
-function onFormSubmit(e) {
-  Logger.log(e);
+function processPitchingResult(e){
+  var pitching_sheet = getGameSheet("Pitching");
+  var new_row = calcPitchingResult(e.namedValues);
+  overwriteRowIfPlayterExists(pitching_sheet, new_row, isNameAndDateEqual);
+}
+
+function processHittingResult(e){
   var game = e.namedValues["Game"].toString();
   var game_sheet = getGameSheet(game);
   if(!game_sheet){
@@ -149,8 +245,15 @@ function onFormSubmit(e) {
     game_sheet = getGameSheet(game);
     game_sheet.appendRow(generateHeader());
   }
-
-  overwriteRowIfPlayterExists(game_sheet, calcHittingResult(e.namedValues));
+  overwriteRowIfPlayterExists(game_sheet, calcHittingResult(e.namedValues), isNameEqual);
+}
+function onFormSubmit(e) {
+  Logger.log(e);
+  if("Result" in e.namedValues){
+    processPitchingResult(e);
+  }else {
+    processHittingResult(e);
+  }
 }
 
 function createFormSubmitTriggers(){

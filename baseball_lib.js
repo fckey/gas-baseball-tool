@@ -30,3 +30,7 @@ function calcObs(row){
   var ab_bb_sf = ab+bb+sf;
   return (ab_bb_sf===0)? 0: Math.round(1000*(hits+bb)/ab_bb_sf)/1000;
 }
+
+function calcEra(inning, outs, er){
+  return Math.round(1000*(er * 9 * 3)/(inning*3+outs))/1000;
+}
